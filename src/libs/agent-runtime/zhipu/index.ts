@@ -3,11 +3,17 @@ import OpenAI from 'openai';
 
 import { LobeRuntimeAI } from '../BaseAI';
 import { AgentRuntimeErrorType } from '../error';
-import { ChatStreamPayload, ModelProvider, OpenAIChatMessage } from '../types';
+import {
+  ChatCompetitionOptions,
+  ChatStreamCallbacks,
+  ChatStreamPayload,
+  ModelProvider,
+  OpenAIChatMessage,
+} from '../types';
 import { AgentRuntimeError } from '../utils/createError';
 import { debugStream } from '../utils/debugStream';
 import { desensitizeUrl } from '../utils/desensitizeUrl';
-import { DEBUG_CHAT_COMPLETION } from '../utils/env';
+import { DEBUG_ZHIPU_CHAT_COMPLETION } from '../utils/env';
 import { handleOpenAIError } from '../utils/handleOpenAIError';
 import { parseDataUri } from '../utils/uriParser';
 import { generateApiToken } from './authToken';
@@ -52,15 +58,15 @@ export class LobeZhipuAI implements LobeRuntimeAI {
         params as unknown as OpenAI.ChatCompletionCreateParamsStreaming,
       );
 
-      const stream = OpenAIStream(response);
+      const [prod, debug] = response.tee();
 
-      const [debug, returnStream] = stream.tee();
-
-      if (DEBUG_CHAT_COMPLETION) {
-        debugStream(debug).catch(console.error);
+      if (DEBUG_ZHIPU_CHAT_COMPLETION) {
+        debugStream(debug.toReadableStream()).catch(console.error);
       }
 
-      return new StreamingTextResponse(returnStream);
+      const stream = OpenAIStream(prod);
+
+      return new StreamingTextResponse(stream);
     } catch (error) {
       const { errorResult, RuntimeError } = handleOpenAIError(error);
 

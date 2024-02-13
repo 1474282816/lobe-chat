@@ -1,6 +1,7 @@
 import { getServerConfig } from '@/config/server';
 import { JWTPayload } from '@/const/auth';
 import {
+  ChatCompetitionOptions,
   ChatStreamPayload,
   LobeAzureOpenAI,
   LobeBedrockAI,
@@ -29,8 +30,8 @@ class AgentRuntime {
     this._runtime = runtime;
   }
 
-  async chat(payload: ChatStreamPayload) {
-    return this._runtime.chat(payload);
+  async chat(payload: ChatStreamPayload, options?: ChatCompetitionOptions) {
+    return this._runtime.chat(payload, options);
   }
 
   static async initializeWithUserPayload(
