@@ -3,13 +3,7 @@ import OpenAI from 'openai';
 
 import { LobeRuntimeAI } from '../BaseAI';
 import { AgentRuntimeErrorType } from '../error';
-import {
-  ChatCompetitionOptions,
-  ChatStreamCallbacks,
-  ChatStreamPayload,
-  ModelProvider,
-  OpenAIChatMessage,
-} from '../types';
+import { ChatStreamPayload, ModelProvider, OpenAIChatMessage } from '../types';
 import { AgentRuntimeError } from '../utils/createError';
 import { debugStream } from '../utils/debugStream';
 import { desensitizeUrl } from '../utils/desensitizeUrl';
