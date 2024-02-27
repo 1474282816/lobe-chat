@@ -36,6 +36,14 @@ vi.mock('@/store/chat/selectors', () => ({
     getMessageById: vi.fn(),
   },
 }));
+
+vi.mock('../../selectors', () => ({
+  chatSelectors: {
+    currentChats: vi.fn(),
+    getMessageById: vi.fn(),
+  },
+}));
+
 beforeEach(() => {
   // 在每个测试之前重置模拟函数
   vi.resetAllMocks();
@@ -445,7 +453,11 @@ describe('ChatPluginAction', () => {
       };
       useChatStore.setState(initialState);
 
-      (chatService.runPluginApi as Mock).mockResolvedValue(pluginApiResponse);
+      (chatSelectors.getMessageById as Mock).mockImplementation(() => () => ({
+        id: messageId,
+      }));
+
+      (chatService.runPluginApi as Mock).mockResolvedValue({ text: pluginApiResponse });
 
       const { result } = renderHook(() => useChatStore());
 
@@ -458,7 +470,11 @@ describe('ChatPluginAction', () => {
         messageId,
         expect.any(String),
       );
-      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
+      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, {
+        signal: undefined,
+        trace: { traceId: undefined },
+      });
+
       expect(messageService.updateMessage).toHaveBeenCalledWith(messageId, {
         content: pluginApiResponse,
       });
@@ -479,6 +495,9 @@ describe('ChatPluginAction', () => {
       };
       useChatStore.setState(initialState);
 
+      (chatSelectors.getMessageById as Mock).mockImplementation(() => () => ({
+        id: messageId,
+      }));
       (chatService.runPluginApi as Mock).mockRejectedValue(error);
 
       const { result } = renderHook(() => useChatStore());
@@ -492,7 +511,10 @@ describe('ChatPluginAction', () => {
         messageId,
         expect.any(String),
       );
-      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
+      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, {
+        signal: undefined,
+        trace: { traceId: undefined },
+      });
       expect(messageService.updateMessageError).toHaveBeenCalledWith(messageId, error);
       expect(initialState.refreshMessages).toHaveBeenCalled();
       expect(initialState.toggleChatLoading).toHaveBeenCalledWith(false);
