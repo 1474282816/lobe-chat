@@ -107,74 +107,6 @@ describe('ChatPluginAction', () => {
     });
   });
 
-  describe('runPluginDefaultType', () => {
-    it('should run the default plugin type and update message content', async () => {
-      const pluginPayload = { apiName: 'testApi', arguments: { key: 'value' } };
-      const messageId = 'message-id';
-      const pluginApiResponse = 'Plugin API response';
-
-      const initialState = {
-        refreshMessages: vi.fn(),
-        coreProcessMessage: vi.fn(),
-        toggleChatLoading: vi.fn(),
-      };
-      useChatStore.setState(initialState);
-
-      (chatService.runPluginApi as Mock).mockResolvedValue(pluginApiResponse);
-
-      const { result } = renderHook(() => useChatStore());
-
-      await act(async () => {
-        await result.current.invokeDefaultTypePlugin(messageId, pluginPayload);
-      });
-
-      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(
-        true,
-        messageId,
-        expect.any(String),
-      );
-      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
-      expect(messageService.updateMessage).toHaveBeenCalledWith(messageId, {
-        content: pluginApiResponse,
-      });
-      expect(initialState.refreshMessages).toHaveBeenCalled();
-      expect(initialState.coreProcessMessage).toHaveBeenCalled();
-      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(false);
-    });
-
-    it('should handle errors when the plugin API call fails', async () => {
-      const pluginPayload = { apiName: 'testApi', arguments: { key: 'value' } };
-      const messageId = 'message-id';
-      const error = new Error('API call failed');
-
-      const initialState = {
-        refreshMessages: vi.fn(),
-        coreProcessMessage: vi.fn(),
-        toggleChatLoading: vi.fn(),
-      };
-      useChatStore.setState(initialState);
-
-      (chatService.runPluginApi as Mock).mockRejectedValue(error);
-
-      const { result } = renderHook(() => useChatStore());
-
-      await act(async () => {
-        await result.current.invokeDefaultTypePlugin(messageId, pluginPayload);
-      });
-
-      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(
-        true,
-        messageId,
-        expect.any(String),
-      );
-      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
-      expect(messageService.updateMessageError).toHaveBeenCalledWith(messageId, error);
-      expect(initialState.refreshMessages).toHaveBeenCalled();
-      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(false);
-      expect(initialState.coreProcessMessage).not.toHaveBeenCalled(); // 确保在错误情况下不调用此方法
-    });
-  });
-
   describe('triggerFunctionCall', () => {
     it('should trigger a function call and update the plugin message accordingly', async () => {
       const messageId = 'message-id';
@@ -497,6 +429,74 @@ describe('ChatPluginAction', () => {
 
       // 验证 refreshMessages 是否没有被调用
       expect(result.current.refreshMessages).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('invokeDefaultTypePlugin', () => {
+    it('should run the default plugin type and update message content', async () => {
+      const pluginPayload = { apiName: 'testApi', arguments: { key: 'value' } };
+      const messageId = 'message-id';
+      const pluginApiResponse = 'Plugin API response';
+
+      const initialState = {
+        refreshMessages: vi.fn(),
+        coreProcessMessage: vi.fn(),
+        toggleChatLoading: vi.fn(),
+      };
+      useChatStore.setState(initialState);
+
+      (chatService.runPluginApi as Mock).mockResolvedValue(pluginApiResponse);
+
+      const { result } = renderHook(() => useChatStore());
+
+      await act(async () => {
+        await result.current.invokeDefaultTypePlugin(messageId, pluginPayload);
+      });
+
+      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(
+        true,
+        messageId,
+        expect.any(String),
+      );
+      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
+      expect(messageService.updateMessage).toHaveBeenCalledWith(messageId, {
+        content: pluginApiResponse,
+      });
+      expect(initialState.refreshMessages).toHaveBeenCalled();
+      expect(initialState.coreProcessMessage).toHaveBeenCalled();
+      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(false);
+    });
+
+    it('should handle errors when the plugin API call fails', async () => {
+      const pluginPayload = { apiName: 'testApi', arguments: { key: 'value' } };
+      const messageId = 'message-id';
+      const error = new Error('API call failed');
+
+      const initialState = {
+        refreshMessages: vi.fn(),
+        coreProcessMessage: vi.fn(),
+        toggleChatLoading: vi.fn(),
+      };
+      useChatStore.setState(initialState);
+
+      (chatService.runPluginApi as Mock).mockRejectedValue(error);
+
+      const { result } = renderHook(() => useChatStore());
+
+      await act(async () => {
+        await result.current.invokeDefaultTypePlugin(messageId, pluginPayload);
+      });
+
+      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(
+        true,
+        messageId,
+        expect.any(String),
+      );
+      expect(chatService.runPluginApi).toHaveBeenCalledWith(pluginPayload, { signal: undefined });
+      expect(messageService.updateMessageError).toHaveBeenCalledWith(messageId, error);
+      expect(initialState.refreshMessages).toHaveBeenCalled();
+      expect(initialState.toggleChatLoading).toHaveBeenCalledWith(false);
+      expect(initialState.coreProcessMessage).not.toHaveBeenCalled(); // 确保在错误情况下不调用此方法
     });
   });
 
